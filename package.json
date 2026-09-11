@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
-    "@next/swc-win32-x64-msvc": "^16.3.3",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.4",
     "date-fns": "^4.4.0",
