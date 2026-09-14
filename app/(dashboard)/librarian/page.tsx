@@ -1,46 +1,27 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { PageHeader } from '@/components/shared/page-header'
+import { EmptyState } from '@/components/shared/empty-state'
+import { CalendarWidget } from '@/components/shared/calendar-widget'
 import { Library } from 'lucide-react'
 
-export default async function LibrarianDashboard() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  let fullName = 'Librarian'
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', user.id)
-      .single()
-    if (profile?.full_name) fullName = profile.full_name
-  }
-
+export default function LibrarianDashboard() {
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
-            <Library className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="inline-flex items-center rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-              Role: librarian
-            </span>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl mt-1">
-              Library Portal
-            </h1>
-          </div>
+      <PageHeader
+        title="Librarian Dashboard"
+        subtitle="Book catalog, issue/return status, and overdue reports."
+      />
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="md:col-span-2">
+          <EmptyState
+            title="Library Overview"
+            icon={Library}
+            message="Active borrows, overdue books, and catalog statistics will appear here."
+          />
         </div>
-        <p className="text-lg font-medium text-foreground">
-          Logged in as <span className="font-semibold text-teal-600 dark:text-teal-400">librarian</span> — {fullName}
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Welcome to the Library portal. Book cataloging, ISBN lookup, issue/return transactions, and overdue fine calculations will appear here.
-        </p>
+        <div>
+          <CalendarWidget />
+        </div>
       </div>
     </div>
   )
 }
-

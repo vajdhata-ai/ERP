@@ -1,16 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { UserProfile } from '@/lib/types'
-import { LogOut, User, ShieldCheck } from 'lucide-react'
+import { LogOut, User, ShieldCheck, ChevronDown } from 'lucide-react'
 
 export function UserNav({ profile }: { profile: UserProfile | null }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
 
   const handleSignOut = async () => {
     try {
@@ -20,7 +37,6 @@ export function UserNav({ profile }: { profile: UserProfile | null }) {
       router.refresh()
     } catch (err) {
       console.error('Logout error:', err)
-      // Fallback
       window.location.href = '/api/auth/signout'
     }
   }
@@ -54,66 +70,86 @@ export function UserNav({ profile }: { profile: UserProfile | null }) {
     .map((n) => n[0].toUpperCase())
     .join('') || 'U'
 
+  // If user has class info (e.g. Student Class X-A)
+  const secondaryLabel =
+    profile?.class_name
+      ? `Class ${profile.class_name}${profile.section_name ? `-${profile.section_name}` : ''}`
+      : roleLabels[role] || role
+
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative inline-block text-left" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 rounded-full border border-border p-1.5 pr-3 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        className="flex items-center gap-2.5 rounded-full border border-border bg-card p-1 pr-2.5 sm:pr-3 hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         aria-expanded={isOpen}
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-xs shadow-sm">
-          {initials}
-        </div>
-        <div className="hidden sm:flex flex-col items-start text-left">
+        {profile?.avatar_url ? (
+          <Image
+            src={profile.avatar_url}
+            alt={displayName}
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-full object-cover shadow-xs border border-border"
+          />
+        ) : (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-xs shadow-xs">
+            {initials}
+          </div>
+        )}
+        <div className="hidden md:flex flex-col items-start text-left">
           <span className="text-xs font-semibold leading-tight text-foreground line-clamp-1 max-w-[120px]">
             {displayName}
           </span>
-          <span className="text-[10px] text-muted-foreground capitalize">
-            {roleLabels[role] || role}
+          <span className="text-[10px] text-muted-foreground font-medium truncate max-w-[120px]">
+            {secondaryLabel}
           </span>
         </div>
+        <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block opacity-70" />
       </button>
 
       {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-border bg-card p-2 shadow-lg z-50 text-foreground animate-in fade-in-50 zoom-in-95">
-            <div className="px-3 py-2 border-b border-border/60">
-              <p className="text-sm font-semibold truncate">{displayName}</p>
-              <div className="mt-1 flex items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                    roleBadges[role] || 'bg-secondary text-secondary-foreground'
-                  }`}
-                >
-                  <ShieldCheck className="h-3 w-3" />
-                  {roleLabels[role] || role}
-                </span>
-              </div>
-            </div>
-
-            <div className="py-1">
-              <div className="px-3 py-1.5 text-xs text-muted-foreground flex items-center gap-2">
-                <User className="h-3.5 w-3.5" />
-                <span className="truncate">{profile?.phone || 'Account active'}</span>
-              </div>
-            </div>
-
-            <div className="border-t border-border/60 pt-1">
-              <button
-                onClick={handleSignOut}
-                disabled={isLoggingOut}
-                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+        <div className="absolute right-0 mt-2 w-56 sm:w-60 origin-top-right rounded-2xl border border-border bg-card p-2 shadow-xl z-50 text-foreground animate-in fade-in-50 zoom-in-95">
+          <div className="px-3 py-2.5 border-b border-border/70">
+            <p className="text-sm font-semibold truncate text-foreground">{displayName}</p>
+            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  roleBadges[role] || 'bg-secondary text-secondary-foreground'
+                }`}
               >
-                <LogOut className="h-3.5 w-3.5" />
-                {isLoggingOut ? 'Signing out...' : 'Sign out'}
-              </button>
+                <ShieldCheck className="h-3 w-3" />
+                {roleLabels[role] || role}
+              </span>
+              {profile?.class_name && (
+                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  Class {profile.class_name}{profile.section_name ? `-${profile.section_name}` : ''}
+                </span>
+              )}
             </div>
           </div>
-        </>
+
+          <div className="py-1">
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+            >
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span>My Profile</span>
+            </Link>
+          </div>
+
+          <div className="border-t border-border/70 pt-1">
+            <button
+              onClick={handleSignOut}
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>{isLoggingOut ? 'Signing out...' : 'Logout'}</span>
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

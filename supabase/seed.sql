@@ -154,6 +154,7 @@ BEGIN
     INSERT INTO public.parent_student_links (school_id, parent_profile_id, student_id, relation)
     VALUES
         (v_school_id, v_parent1_uid, v_student_rec1, 'father'),
+        (v_school_id, v_parent1_uid, v_student_rec3, 'father'),
         (v_school_id, v_parent2_uid, v_student_rec2, 'mother'),
         (v_school_id, v_parent3_uid, v_student_rec3, 'father')
     ON CONFLICT (parent_profile_id, student_id) DO NOTHING;
@@ -256,7 +257,9 @@ BEGIN
     -- ------------------------------------------------------------------------
     INSERT INTO public.circulars (school_id, title, description, category, target_class_id, created_by, send_whatsapp)
     VALUES
-        (v_school_id, 'Annual Sports Meet 2026 Announcement', 'All students and parents are hereby invited to register for athletics and track events before Friday.', 'Sports', NULL, v_admin_uid, true);
+        (v_school_id, 'Annual Sports Meet 2026 Announcement', 'All students and parents are hereby invited to register for athletics and track events before Friday.', 'Sports', NULL, v_admin_uid, true),
+        (v_school_id, 'Term 1 Assessment Date Sheet Released', 'The comprehensive timetable for upcoming mid-term theory and practical examinations has been published.', 'Academic', v_class_xii_id, v_admin_uid, false),
+        (v_school_id, 'Inter-School Science & Innovation Expo', 'Registrations are open for students wishing to showcase working science models and robotics projects.', 'Notice', NULL, v_teacher1_uid, true);
 
     INSERT INTO public.notifications (school_id, profile_id, title, body, type)
     VALUES
@@ -268,7 +271,17 @@ BEGIN
     -- ------------------------------------------------------------------------
     INSERT INTO public.calendar_events (school_id, title, event_type, start_date, end_date, description)
     VALUES
+        (v_school_id, 'Parent-Teacher Evaluation Conference', 'event', CURRENT_DATE + 5, CURRENT_DATE + 5, 'One-on-one session to discuss student academic progress with class educators.'),
+        (v_school_id, 'Annual Science Exhibition & Robotics Fair', 'event', CURRENT_DATE + 12, CURRENT_DATE + 13, 'Interactive student exhibits and live scientific project demonstrations in the school auditorium.'),
         (v_school_id, 'Gandhi Jayanti Holiday', 'holiday', '2026-10-02', '2026-10-02', 'National holiday on occasion of Mahatma Gandhi Jayanti.'),
         (v_school_id, 'Term 1 Final Assessments', 'exam', '2026-11-10', '2026-11-20', 'Term 1 end semester examinations for all classes.');
+
+    -- ------------------------------------------------------------------------
+    -- 15. REMARKS & ACHIEVEMENTS
+    -- ------------------------------------------------------------------------
+    INSERT INTO public.remarks (school_id, student_id, given_by, remark_text, remark_type, created_at)
+    VALUES
+        (v_school_id, v_student_rec1, v_teacher1_uid, 'Awarded 1st Prize in National Physics Olympiad 2026 for stellar analytical problem solving.', 'positive', CURRENT_DATE - 7),
+        (v_school_id, v_student_rec1, v_teacher2_uid, 'Exemplary conduct, diligence, and proactive leadership during laboratory and classroom sessions.', 'positive', CURRENT_DATE - 14);
 
 END $$;

@@ -10,6 +10,8 @@ const ROUTE_ROLE_PERMISSIONS: Record<string, UserRole[]> = {
   '/student': ['student', 'parent', 'school_admin', 'super_admin'],
   '/accountant': ['accountant', 'school_admin', 'super_admin'],
   '/librarian': ['librarian', 'school_admin', 'super_admin'],
+  // /profile is accessible to any authenticated user regardless of role
+  '/profile': ['super_admin', 'school_admin', 'teacher', 'student', 'parent', 'accountant', 'librarian'],
 }
 
 // Default home page for each role

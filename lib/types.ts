@@ -35,5 +35,26 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
   schools?: School | null;
+  class_name?: string | null;
+  section_name?: string | null;
+}
+
+export interface NotificationItem {
+  id: string;
+  school_id: string;
+  profile_id: string;
+  title: string;
+  body: string;
+  type: string; // 'fee' | 'homework' | 'attendance' | 'transport' | 'circular' | 'system'
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  type?: 'holiday' | 'exam' | 'event' | 'meeting' | 'general';
+  description?: string;
 }
 

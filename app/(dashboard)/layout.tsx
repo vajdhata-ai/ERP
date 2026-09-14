@@ -1,9 +1,9 @@
 import React, { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { UserNav } from '@/components/shared/user-nav'
 import { DashboardAlertListener } from '@/components/shared/dashboard-alert-listener'
+import { DashboardShell } from '@/components/shared/dashboard-shell'
 import { UserProfile } from '@/lib/types'
-import { GraduationCap } from 'lucide-react'
+import { getNavigationForRole } from '@/lib/navigation'
 
 export default async function DashboardLayout({
   children,
@@ -21,48 +21,58 @@ export default async function DashboardLayout({
   if (user) {
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('id, school_id, full_name, role, phone, avatar_url, is_active, created_at, updated_at, schools(id, name, school_code)')
+      .select(
+        'id, school_id, full_name, role, phone, avatar_url, is_active, created_at, updated_at, schools(id, name, school_code, logo_url)'
+      )
       .eq('id', user.id)
       .single()
 
     if (profileData) {
       profile = profileData as unknown as UserProfile
+
       if (profileData.schools && !Array.isArray(profileData.schools)) {
         schoolName = (profileData.schools as { name: string }).name || schoolName
+      }
+
+      // For student role, also fetch class/section info
+      if (profileData.role === 'student') {
+        const { data: studentData } = await supabase
+          .from('students')
+          .select('class_id, section_id, classes(name), sections(name)')
+          .eq('profile_id', user.id)
+          .single()
+
+        if (studentData && profile) {
+          // Supabase join returns array or object depending on relation — cast safely
+          const classRaw = studentData.classes
+          const sectionRaw = studentData.sections
+          const classInfo = (Array.isArray(classRaw) ? classRaw[0] : classRaw) as { name: string } | null
+          const sectionInfo = (Array.isArray(sectionRaw) ? sectionRaw[0] : sectionRaw) as { name: string } | null
+          profile = {
+            ...profile,
+            class_name: classInfo?.name ?? null,
+            section_name: sectionInfo?.name ?? null,
+          }
+        }
       }
     }
   }
 
+  const role = profile?.role ?? 'student'
+  const navItems = getNavigationForRole(role)
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
+    <>
       <Suspense fallback={null}>
         <DashboardAlertListener />
       </Suspense>
-
-      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur px-4 sm:px-6 py-3 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-            <GraduationCap className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="font-bold text-sm sm:text-base text-foreground tracking-tight line-clamp-1">
-              {schoolName}
-            </span>
-            <span className="hidden sm:inline-block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-              Vajdhata Multi-Tenant School ERP
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <UserNav profile={profile} />
-        </div>
-      </header>
-
-      <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto">
+      <DashboardShell
+        navItems={navItems}
+        profile={profile}
+        schoolName={schoolName}
+      >
         {children}
-      </main>
-    </div>
+      </DashboardShell>
+    </>
   )
 }
-
