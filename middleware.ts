@@ -73,6 +73,25 @@ export async function middleware(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
 
+  const demoRole = request.cookies.get('vajdhata_demo_role')?.value as UserRole | undefined
+
+  // Demo session bypass for offline/preview mode
+  if (!user && demoRole) {
+    const homeUrl = ROLE_HOME_MAP[demoRole] || '/student'
+    if (isAuthPage && !pathname.startsWith('/reset-password')) {
+      return NextResponse.redirect(new URL(homeUrl, request.url))
+    }
+    if (protectedPrefix) {
+      const allowedRoles = ROUTE_ROLE_PERMISSIONS[protectedPrefix]
+      if (allowedRoles && !allowedRoles.includes(demoRole)) {
+        const redirectUrl = new URL(homeUrl, request.url)
+        redirectUrl.searchParams.set('unauthorized', 'true')
+        return NextResponse.redirect(redirectUrl)
+      }
+    }
+    return response
+  }
+
   // 1. Unauthenticated user trying to access protected route -> Redirect to /login
   if (protectedPrefix && !user) {
     const loginUrl = new URL('/login', request.url)

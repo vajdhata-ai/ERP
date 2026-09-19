@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import React, { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardAlertListener } from '@/components/shared/dashboard-alert-listener'
@@ -58,6 +59,21 @@ export default async function DashboardLayout({
     }
   }
 
+  const cookieStore = cookies()
+  const demoRole = cookieStore.get('vajdhata_demo_role')?.value as UserRole | undefined
+  if (!profile && demoRole) {
+    profile = {
+      id: 'd1111111-dddd-dddd-dddd-dddddddddddd',
+      school_id: '11111111-1111-1111-1111-111111111111',
+      full_name: demoRole === 'teacher' ? 'Rajesh Verma (Senior PGT Physics)' : demoRole === 'school_admin' ? 'Dr. Vinod Sharma' : 'Aarav Patel',
+      role: demoRole,
+      phone: '+919876543210',
+      avatar_url: null,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  }
   const role = profile?.role ?? 'student'
   const navItems = getNavigationForRole(role)
 
