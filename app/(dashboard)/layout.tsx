@@ -3,7 +3,7 @@ import React, { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardAlertListener } from '@/components/shared/dashboard-alert-listener'
 import { DashboardShell } from '@/components/shared/dashboard-shell'
-import { UserProfile } from '@/lib/types'
+import { UserProfile, UserRole } from '@/lib/types'
 import { getNavigationForRole } from '@/lib/navigation'
 
 export default async function DashboardLayout({
