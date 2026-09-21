@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-﻿/**
+/**
  * lib/data/homework.ts
  * ============================================================================
  * Data helpers and types for Stage 6 — Homework & Assignments Module

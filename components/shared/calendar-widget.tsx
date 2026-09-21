@@ -28,44 +28,33 @@ interface CalendarWidgetProps {
   onDateSelect?: (date: Date) => void
 }
 
-const DEFAULT_EVENTS: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Science Fair Exhibition',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    type: 'event',
-    description: 'Annual school science project exhibition in the auditorium.',
-  },
-  {
-    id: '2',
-    title: 'Mid-term Revision Test',
-    date: format(new Date(Date.now() + 86400000 * 3), 'yyyy-MM-dd'),
-    type: 'exam',
-    description: 'Mathematics and Physical Sciences unit test.',
-  },
-  {
-    id: '3',
-    title: 'Parent-Teacher Meeting',
-    date: format(new Date(Date.now() + 86400000 * 7), 'yyyy-MM-dd'),
-    type: 'meeting',
-    description: 'Quarterly review discussion with class teachers.',
-  },
-  {
-    id: '4',
-    title: 'National Holiday',
-    date: format(new Date(Date.now() + 86400000 * 12), 'yyyy-MM-dd'),
-    type: 'holiday',
-    description: 'School remains closed.',
-  },
-]
+import { getLocalCalendarEvents } from '@/lib/data/calendar'
+
+const DEFAULT_EVENTS: CalendarEvent[] = []
 
 export function CalendarWidget({
-  events = DEFAULT_EVENTS,
+  events,
   className,
   onDateSelect,
 }: CalendarWidgetProps) {
   const [currentMonth, setCurrentMonth] = React.useState<Date>(new Date())
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
+  const [liveEvents, setLiveEvents] = React.useState<CalendarEvent[]>([])
+
+  React.useEffect(() => {
+    if (!events) {
+      const rawEvents = getLocalCalendarEvents()
+      setLiveEvents(rawEvents.map(e => ({
+        id: e.id,
+        title: e.title,
+        date: e.start_date,
+        type: e.event_type.toLowerCase() as any,
+        description: e.description
+      })))
+    }
+  }, [events])
+
+  const activeEvents = events || liveEvents
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
@@ -85,7 +74,7 @@ export function CalendarWidget({
   }
 
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd')
-  const selectedDayEvents = events.filter((e) => e.date === selectedDateStr)
+  const selectedDayEvents = activeEvents.filter((e) => e.date === selectedDateStr)
 
   return (
     <div
@@ -140,7 +129,7 @@ export function CalendarWidget({
           const isSelected = isSameDay(day, selectedDate)
           const isCurrentMonth = isSameMonth(day, currentMonth)
           const isCurrentDay = isToday(day)
-          const dayEvents = events.filter((e) => e.date === dayStr)
+          const dayEvents = activeEvents.filter((e) => e.date === dayStr)
           const hasEvents = dayEvents.length > 0
 
           return (
