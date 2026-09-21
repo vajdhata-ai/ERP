@@ -109,7 +109,7 @@ export default function AdminRiskDashboardPage() {
               <IndianRupee className="h-5 w-5" /> Fee Default Risk
             </h3>
             <span className="text-xs font-semibold text-rose-600 bg-rose-100 px-2.5 py-1 rounded-md">
-              Overdue or Due < 7 days
+              Overdue or Due &lt; 7 days
             </span>
           </div>
           <div className="flex-1 overflow-auto">
