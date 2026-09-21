@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { toast } from 'sonner'
-import { Search, Plus, Book, BookOpen, Clock, AlertCircle } from 'lucide-react'
+import { Search, Plus, Book, BookOpen, Clock, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 
 type LibraryBook = {

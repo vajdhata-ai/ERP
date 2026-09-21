@@ -1,10 +1,11 @@
-﻿import * as React from 'react'
+import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 interface PageHeaderProps {
   title: string
   subtitle?: string
   actions?: React.ReactNode
+  action?: React.ReactNode
   className?: string
 }
 
@@ -12,6 +13,7 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  action,
   className,
 }: PageHeaderProps) {
   return (
@@ -31,9 +33,10 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {actions && (
+      {(actions || action) && (
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           {actions}
+          {action}
         </div>
       )}
     </div>

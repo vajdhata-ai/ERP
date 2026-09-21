@@ -65,7 +65,7 @@ export default function AccountantDashboardPage() {
                 <Pie data={chartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value" stroke="none">
                   {chartData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip formatter={(val: number) => `₹${(val/100000).toFixed(1)}L`} />
+                <Tooltip formatter={(val: any) => `₹${(val/100000).toFixed(1)}L`} />
               </PieChart>
             </ResponsiveContainer>
           </div>

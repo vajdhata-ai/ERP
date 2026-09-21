@@ -13,11 +13,10 @@ export default function ForgotPasswordPage() {
   const [isSent, setIsSent] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const supabase = createClient()
-
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
+    const supabase = createClient()
 
     if (!email.trim()) {
       setErrorMessage('Please enter your registered email address.')

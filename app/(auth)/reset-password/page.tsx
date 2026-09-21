@@ -18,11 +18,10 @@ export default function ResetPasswordPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const router = useRouter()
-  const supabase = createClient()
-
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
+    const supabase = createClient()
 
     if (password.length < 6) {
       setErrorMessage('Password must be at least 6 characters long.')
