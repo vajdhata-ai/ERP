@@ -93,7 +93,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 1. Unauthenticated user trying to access protected route -> Redirect to /login
-  if (protectedPrefix && !user) {
+  if (protectedPrefix && !user && !demoRole) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)

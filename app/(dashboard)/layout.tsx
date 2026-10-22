@@ -11,52 +11,56 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   let profile: UserProfile | null = null
   let schoolName = 'VAJDHATA ERP'
 
-  if (user) {
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select(
-        'id, school_id, full_name, role, phone, avatar_url, is_active, created_at, updated_at, schools(id, name, school_code, logo_url)'
-      )
-      .eq('id', user.id)
-      .single()
+  try {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    if (profileData) {
-      profile = profileData as unknown as UserProfile
+    if (user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select(
+          'id, school_id, full_name, role, phone, avatar_url, is_active, created_at, updated_at, schools(id, name, school_code, logo_url)'
+        )
+        .eq('id', user.id)
+        .single()
 
-      if (profileData.schools && !Array.isArray(profileData.schools)) {
-        schoolName = (profileData.schools as { name: string }).name || schoolName
-      }
+      if (profileData) {
+        profile = profileData as unknown as UserProfile
 
-      // For student role, also fetch class/section info
-      if (profileData.role === 'student') {
-        const { data: studentData } = await supabase
-          .from('students')
-          .select('class_id, section_id, classes(name), sections(name)')
-          .eq('profile_id', user.id)
-          .single()
+        if (profileData.schools && !Array.isArray(profileData.schools)) {
+          schoolName = (profileData.schools as { name: string }).name || schoolName
+        }
 
-        if (studentData && profile) {
-          // Supabase join returns array or object depending on relation — cast safely
-          const classRaw = studentData.classes
-          const sectionRaw = studentData.sections
-          const classInfo = (Array.isArray(classRaw) ? classRaw[0] : classRaw) as { name: string } | null
-          const sectionInfo = (Array.isArray(sectionRaw) ? sectionRaw[0] : sectionRaw) as { name: string } | null
-          profile = {
-            ...profile,
-            class_name: classInfo?.name ?? null,
-            section_name: sectionInfo?.name ?? null,
+        // For student role, also fetch class/section info
+        if (profileData.role === 'student') {
+          const { data: studentData } = await supabase
+            .from('students')
+            .select('class_id, section_id, classes(name), sections(name)')
+            .eq('profile_id', user.id)
+            .single()
+
+          if (studentData && profile) {
+            // Supabase join returns array or object depending on relation — cast safely
+            const classRaw = studentData.classes
+            const sectionRaw = studentData.sections
+            const classInfo = (Array.isArray(classRaw) ? classRaw[0] : classRaw) as { name: string } | null
+            const sectionInfo = (Array.isArray(sectionRaw) ? sectionRaw[0] : sectionRaw) as { name: string } | null
+            profile = {
+              ...profile,
+              class_name: classInfo?.name ?? null,
+              section_name: sectionInfo?.name ?? null,
+            }
           }
         }
       }
     }
+  } catch (err) {
+    console.warn('DashboardLayout: failed to load user from Supabase, falling back to session cookies:', err)
   }
 
   const cookieStore = cookies()
