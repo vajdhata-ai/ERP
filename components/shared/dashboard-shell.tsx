@@ -5,22 +5,24 @@ import { Menu, Search, GraduationCap } from 'lucide-react'
 import { Sidebar } from '@/components/shared/sidebar'
 import { NotificationBell } from '@/components/shared/notification-bell'
 import { UserNav } from '@/components/shared/user-nav'
-import { NavItem } from '@/lib/navigation'
+import { getNavigationForRole } from '@/lib/navigation'
+import { UserRole } from '@/lib/types'
 import { UserProfile } from '@/lib/types'
 
 interface DashboardShellProps {
   children: React.ReactNode
-  navItems: NavItem[]
+  role?: UserRole
   profile: UserProfile | null
   schoolName: string
 }
 
 export function DashboardShell({
   children,
-  navItems,
+  role = 'student',
   profile,
   schoolName,
 }: DashboardShellProps) {
+  const navItems = React.useMemo(() => getNavigationForRole(role), [role])
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
   return (

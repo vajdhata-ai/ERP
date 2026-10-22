@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardAlertListener } from '@/components/shared/dashboard-alert-listener'
 import { DashboardShell } from '@/components/shared/dashboard-shell'
 import { UserProfile, UserRole } from '@/lib/types'
-import { getNavigationForRole } from '@/lib/navigation'
 
 export default async function DashboardLayout({
   children,
@@ -79,7 +78,6 @@ export default async function DashboardLayout({
     }
   }
   const role = profile?.role ?? 'student'
-  const navItems = getNavigationForRole(role)
 
   return (
     <>
@@ -87,7 +85,7 @@ export default async function DashboardLayout({
         <DashboardAlertListener />
       </Suspense>
       <DashboardShell
-        navItems={navItems}
+        role={role}
         profile={profile}
         schoolName={schoolName}
       >
