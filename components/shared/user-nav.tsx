@@ -1,18 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { UserProfile } from '@/lib/types'
-import { LogOut, User, ShieldCheck, ChevronDown } from 'lucide-react'
+import { LogOut, User, ShieldCheck, ChevronDown, Loader2 } from 'lucide-react'
 
 export function UserNav({ profile }: { profile: UserProfile | null }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -32,9 +30,28 @@ export function UserNav({ profile }: { profile: UserProfile | null }) {
   const handleSignOut = async () => {
     try {
       setIsLoggingOut(true)
-      await supabase.auth.signOut()
-      router.push('/login')
-      router.refresh()
+
+      // 1. Clear Supabase auth in browser client
+      try {
+        await supabase.auth.signOut()
+      } catch (e) {
+        console.warn('Supabase auth signout warning:', e)
+      }
+
+      // 2. Clear client-side cookies directly
+      document.cookie = 'vajdhata_demo_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie = 'vajdhata_demo_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+
+      // 3. Clear localStorage / sessionStorage if any
+      try {
+        localStorage.removeItem('vajdhata_demo_role')
+        sessionStorage.clear()
+      } catch {
+        // noop
+      }
+
+      // 4. Hit server signout API to delete server cookies and redirect cleanly
+      window.location.href = '/api/auth/signout'
     } catch (err) {
       console.error('Logout error:', err)
       window.location.href = '/api/auth/signout'
@@ -63,18 +80,18 @@ export function UserNav({ profile }: { profile: UserProfile | null }) {
 
   const role = profile?.role || 'student'
   const displayName = profile?.full_name || 'User'
-  const initials = displayName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0].toUpperCase())
-    .join('') || 'U'
+  const initials =
+    displayName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0].toUpperCase())
+      .join('') || 'U'
 
   // If user has class info (e.g. Student Class X-A)
-  const secondaryLabel =
-    profile?.class_name
-      ? `Class ${profile.class_name}${profile.section_name ? `-${profile.section_name}` : ''}`
-      : roleLabels[role] || role
+  const secondaryLabel = profile?.class_name
+    ? `Class ${profile.class_name}${profile.section_name ? `-${profile.section_name}` : ''}`
+    : roleLabels[role] || role
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
@@ -122,7 +139,8 @@ export function UserNav({ profile }: { profile: UserProfile | null }) {
               </span>
               {profile?.class_name && (
                 <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  Class {profile.class_name}{profile.section_name ? `-${profile.section_name}` : ''}
+                  Class {profile.class_name}
+                  {profile.section_name ? `-${profile.section_name}` : ''}
                 </span>
               )}
             </div>
@@ -143,10 +161,14 @@ export function UserNav({ profile }: { profile: UserProfile | null }) {
             <button
               onClick={handleSignOut}
               disabled={isLoggingOut}
-              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50 cursor-pointer text-left"
             >
-              <LogOut className="h-4 w-4" />
-              <span>{isLoggingOut ? 'Signing out...' : 'Logout'}</span>
+              {isLoggingOut ? (
+                <Loader2 className="h-4 w-4 animate-spin text-rose-600" />
+              ) : (
+                <LogOut className="h-4 w-4" />
+              )}
+              <span>{isLoggingOut ? 'Signing out...' : 'Sign Out'}</span>
             </button>
           </div>
         </div>
